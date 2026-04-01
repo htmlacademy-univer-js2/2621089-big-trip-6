@@ -1,7 +1,7 @@
 
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin'); 
-const CopyWebpackPlugin = require('copy-webpack-plugin'); 
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: path.resolve(__dirname, '2621089-big-trip-6', 'src', 'main.js'),
@@ -15,7 +15,7 @@ module.exports = {
       template: path.resolve(__dirname, '2621089-big-trip-6', 'public', 'index.html'),
       filename: 'index.html'
     }),
-   
+
   ],
   module: {
     rules: [
