@@ -1,6 +1,6 @@
 # Проект «Большое путешествие»
 
-* Студент: [Милана Бажукова](https://up.htmlacademy.ru/univer-js2/6/user/2621089).
+* Студент: [Милана Бажуковааа](https://up.htmlacademy.ru/univer-js2/6/user/2621089).
 * Наставник: [Евгений
 Лепёшкин ](https://htmlacademy.ru/profile/id144641)
 
