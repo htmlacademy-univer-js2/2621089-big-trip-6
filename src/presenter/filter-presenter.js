@@ -1,38 +1,30 @@
-import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
-import { generateFilters } from '../utils/filter.js';
-import { UpdateType } from '../mock/constants.js';
+import {render, replace, remove} from '../framework/render.js';
+import {FilterType, UpdateType} from '../const.js';
+import {countFuturePoints, countPresentPoints, countPastPoints} from '../utils.js';
 
 export default class FilterPresenter {
   #filterContainer = null;
-  #pointsModel = null;
   #filterModel = null;
-
+  #pointsModel = null;
   #filterComponent = null;
 
-  constructor({ filterContainer, pointsModel, filterModel }) {
+  constructor({filterContainer, filterModel, pointsModel}) {
     this.#filterContainer = filterContainer;
-    this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
+    this.#pointsModel = pointsModel;
 
     this.#pointsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
-  get filters() {
-    const points = this.#pointsModel.points;
-
-    return generateFilters(points);
-  }
-
   init() {
-    const filters = this.filters;
     const prevFilterComponent = this.#filterComponent;
 
     this.#filterComponent = new FilterView({
-      filters,
-      currentFilterType: this.#filterModel.filter,
-      onFilterTypeChange: this.#handleFilterTypeChange
+      filters: this.#getFilters(),
+      currentFilter: this.#filterModel.filter,
+      onFilterChange: this.#handleFilterTypeChange,
     });
 
     if (prevFilterComponent === null) {
@@ -52,7 +44,16 @@ export default class FilterPresenter {
     if (this.#filterModel.filter === filterType) {
       return;
     }
-
     this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
   };
+
+  #getFilters() {
+    const points = this.#pointsModel.points;
+    return [
+      {type: FilterType.EVERYTHING, count: points.length},
+      {type: FilterType.FUTURE, count: countFuturePoints(points)},
+      {type: FilterType.PRESENT, count: countPresentPoints(points)},
+      {type: FilterType.PAST, count: countPastPoints(points)},
+    ];
+  }
 }
