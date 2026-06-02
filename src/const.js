@@ -41,7 +41,7 @@ export const DESCRIPTIONS = [
   'Sed sed nisi sed augue convallis suscipit in sed felis.',
   'Aliquam erat volutpat.',
   'Nunc fermentum tortor ac porta dapibus.',
-  'In rutrum ac purus sit amet tempus.'
+  'In rutrum ac purus sit amet tempus..'
 ];
 export const EVENT_TYPES = TYPES;
 
