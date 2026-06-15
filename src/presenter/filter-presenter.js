@@ -1,59 +1,81 @@
 import FilterView from '../view/filter-view.js';
-import {render, replace, remove} from '../framework/render.js';
-import {FilterType, UpdateType} from '../const.js';
-import {countFuturePoints, countPresentPoints, countPastPoints} from '../utils.js';
+import { FilterType, FilterName, UpdateType } from '../const.js';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { render, replace } from '../framework/render.js';
+
+dayjs.extend(utc);
 
 export default class FilterPresenter {
-  #filterContainer = null;
+  #container = null;
   #filterModel = null;
   #pointsModel = null;
   #filterComponent = null;
 
-  constructor({filterContainer, filterModel, pointsModel}) {
-    this.#filterContainer = filterContainer;
+  constructor({ container, filterModel, pointsModel }) {
+    this.#container = container;
     this.#filterModel = filterModel;
     this.#pointsModel = pointsModel;
-
-    this.#pointsModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
-    const prevFilterComponent = this.#filterComponent;
-
-    this.#filterComponent = new FilterView({
-      filters: this.#getFilters(),
-      currentFilter: this.#filterModel.filter,
-      onFilterChange: this.#handleFilterTypeChange,
-    });
-
-    if (prevFilterComponent === null) {
-      render(this.#filterComponent, this.#filterContainer);
-      return;
-    }
-
-    replace(this.#filterComponent, prevFilterComponent);
-    remove(prevFilterComponent);
+    this.#pointsModel.addObserver(this.#handlePointsChange.bind(this));
+    this.#filterModel.addObserver(this.#handleFilterChange.bind(this));
+    this.#renderFilter();
   }
 
-  #handleModelEvent = () => {
-    this.init();
-  };
+  #handlePointsChange() {
+    this.#renderFilter();
+  }
 
-  #handleFilterTypeChange = (filterType) => {
-    if (this.#filterModel.filter === filterType) {
-      return;
-    }
-    this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
-  };
+  #handleFilterChange() {
+    this.#renderFilter();
+  }
 
   #getFilters() {
-    const points = this.#pointsModel.points;
-    return [
-      {type: FilterType.EVERYTHING, count: points.length},
-      {type: FilterType.FUTURE, count: countFuturePoints(points)},
-      {type: FilterType.PRESENT, count: countPresentPoints(points)},
-      {type: FilterType.PAST, count: countPastPoints(points)},
-    ];
+    const points = this.#pointsModel.getPoints();
+    const currentFilter = this.#filterModel.getFilter();
+
+    const now = dayjs.utc().valueOf();
+
+    const counts = {
+      [FilterType.EVERYTHING]: points.length,
+      [FilterType.FUTURE]: points.filter((p) => dayjs.utc(p.dateFrom).valueOf() > now).length,
+      [FilterType.PRESENT]: points.filter((p) => {
+        const from = dayjs.utc(p.dateFrom).valueOf();
+        const to = dayjs.utc(p.dateTo).valueOf();
+        return from <= now && to >= now;
+      }).length,
+      [FilterType.PAST]: points.filter((p) => dayjs.utc(p.dateTo).valueOf() < now).length,
+    };
+
+    return Object.values(FilterType).map((type) => ({
+      type: FilterName[type],
+      value: type,
+      isChecked: currentFilter === type,
+      isDisabled: counts[type] === 0,
+    }));
   }
+
+  #renderFilter() {
+    const filters = this.#getFilters();
+    const prevComponent = this.#filterComponent;
+
+    this.#filterComponent = new FilterView(filters);
+    this.#filterComponent.setFilterChangeHandler(this.#handleFilterTypeChange);
+
+    if (!prevComponent) {
+      render(this.#filterComponent, this.#container);
+    } else {
+      replace(this.#filterComponent, prevComponent);
+    }
+  }
+
+  #handleFilterTypeChange = (filterLabel) => {
+    const newFilter = Object.entries(FilterName).find((entry) => entry[1] === filterLabel)?.[0];
+    if (!newFilter || this.#filterModel.getFilter() === newFilter){
+      return;
+    }
+    this.#filterModel.setFilter(UpdateType.MAJOR, newFilter);
+  };
 }

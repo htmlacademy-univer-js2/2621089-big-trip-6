@@ -1,55 +1,75 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-function createFilterItemTemplate(filterType, currentFilter, count) {
-  const label = filterType.charAt(0).toUpperCase() + filterType.slice(1);
+function createFilterItemTemplate({ type, isChecked = false, isDisabled = false }) {
+  const checkedAttr = isChecked ? 'checked' : '';
+  const disabledAttr = isDisabled ? 'disabled' : '';
   return `
     <div class="trip-filters__filter">
-      <input
-        id="filter-${filterType}"
-        class="trip-filters__filter-input visually-hidden"
-        type="radio"
-        name="trip-filter"
-        value="${filterType}"
-        ${filterType === currentFilter ? 'checked' : ''}
-        ${count === 0 ? 'disabled' : ''}
-      >
-      <label class="trip-filters__filter-label" for="filter-${filterType}">${label}</label>
+      <input id="filter-${type}"
+             class="trip-filters__filter-input visually-hidden"
+             type="radio"
+             name="trip-filter"
+             value="${type}"
+             ${checkedAttr}
+             ${disabledAttr}>
+      <label class="trip-filters__filter-label" for="filter-${type}">${type}</label>
     </div>
   `;
 }
 
-function createFilterTemplate(filters, currentFilter) {
-  const filtersTemplate = filters
-    .map(({type, count}) => createFilterItemTemplate(type, currentFilter, count))
-    .join('');
-
+function createFilterTemplate(filters) {
+  if (!filters || filters.length === 0) {
+    return '';
+  }
   return `
-    <form class="trip-filters" action="#" method="get">
-      ${filtersTemplate}
-      <button class="visually-hidden" type="submit">Accept filter</button>
-    </form>
+    <div class="trip-controls__filters">
+      <h2 class="visually-hidden">Filter events</h2>
+      <form class="trip-filters" action="#" method="get">
+        ${filters.map((filter) => createFilterItemTemplate(filter)).join('')}
+        <button class="visually-hidden" type="submit">Accept filter</button>
+      </form>
+    </div>
   `;
 }
 
 export default class FilterView extends AbstractView {
   #filters = null;
-  #currentFilter = null;
   #handleFilterChange = null;
+  #boundInputChangeHandler = null;
 
-  constructor({filters, currentFilter, onFilterChange}) {
+  constructor(filters) {
     super();
-    this.#filters = filters;
-    this.#currentFilter = currentFilter;
-    this.#handleFilterChange = onFilterChange;
-    this.element.addEventListener('change', this.#handleFilterSelect);
+    this.#filters = filters || [];
   }
 
   get template() {
-    return createFilterTemplate(this.#filters, this.#currentFilter);
+    return createFilterTemplate(this.#filters);
   }
 
-  #handleFilterSelect = (evt) => {
-    evt.preventDefault();
-    this.#handleFilterChange(evt.target.value);
-  };
+  setFilterChangeHandler(callback) {
+    this.#handleFilterChange = callback;
+    if (this.#boundInputChangeHandler) {
+      this.#removeInputHandlers();
+    }
+    this.#boundInputChangeHandler = this.#inputChangeHandler.bind(this);
+    this.element.querySelectorAll('.trip-filters__filter-input').forEach((input) => {
+      input.addEventListener('change', this.#boundInputChangeHandler);
+    });
+  }
+
+  #inputChangeHandler(evt) {
+    if (evt.target.checked) {
+      this.#handleFilterChange?.(evt.target.value);
+    }
+  }
+
+  #removeInputHandlers() {
+    if (!this.#boundInputChangeHandler){
+      return;
+    }
+    this.element.querySelectorAll('.trip-filters__filter-input').forEach((input) => {
+      input.removeEventListener('change', this.#boundInputChangeHandler);
+    });
+    this.#boundInputChangeHandler = null;
+  }
 }
