@@ -1,21 +1,26 @@
+const EVENT_TYPES = [
+  'taxi',
+  'bus',
+  'train',
+  'ship',
+  'drive',
+  'flight',
+  'check-in',
+  'sightseeing',
+  'restaurant'
+];
+
+const SortType = {
+  DAY: 'sort-day',
+  TIME: 'sort-time',
+  PRICE: 'sort-price',
+};
+
 const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
   PRESENT: 'present',
   PAST: 'past',
-};
-
-
-const EVENT_TYPES = [
-  'taxi', 'bus', 'train', 'flight', 'check-in',
-  'sightseeing', 'ship', 'drive', 'restaurant'
-];
-
-const FilterName = {
-  [FilterType.EVERYTHING]: 'Everything',
-  [FilterType.FUTURE]: 'Future',
-  [FilterType.PRESENT]: 'Present',
-  [FilterType.PAST]: 'Past',
 };
 
 const UserAction = {
@@ -24,35 +29,6 @@ const UserAction = {
   DELETE_POINT: 'DELETE_POINT',
 };
 
-const FILTERS = [
-  { name: FilterType.EVERYTHING, label: 'Everything' },
-  { name: FilterType.FUTURE, label: 'Future' },
-  { name: FilterType.PRESENT, label: 'Present' },
-  { name: FilterType.PAST, label: 'Past' },
-];
-
-const Mode = {
-  DEFAULT: 'DEFAULT',
-  EDITING: 'EDITING',
-};
-
-const SortType = {
-  DAY: 'day',
-  EVENT: 'event',
-  TIME: 'time',
-  PRICE: 'price',
-  OFFER: 'offer',
-};
-
-const SORT_TYPE_ENABLED = {
-  [SortType.DAY]: true,
-  [SortType.EVENT]: false,
-  [SortType.TIME]: true,
-  [SortType.PRICE]: true,
-  [SortType.OFFER]: false,
-};
-
-
 const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
@@ -60,14 +36,11 @@ const UpdateType = {
   INIT: 'INIT',
 };
 
-export {
-  FilterType,
-  FilterName,
-  FILTERS,
-  Mode,
-  SortType,
-  SORT_TYPE_ENABLED,
-  UpdateType,
-  UserAction,
-  EVENT_TYPES
+const NoPointsMessage = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.FUTURE]: 'There are no future events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.PAST]: 'There are no past events now',
 };
+
+export { EVENT_TYPES, SortType, FilterType, UserAction, UpdateType, NoPointsMessage };
