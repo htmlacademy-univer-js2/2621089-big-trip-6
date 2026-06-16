@@ -1,60 +1,41 @@
-import '../public/css/style.css';
-import TripPresenter from './presenter/trip-presenter.js';
-import PointsModel from './model/point-model.js';
-import OffersModel from './model/offers-model.js';
-import DestinationsModel from './model/destinations-model.js';
-import FilterModel from './model/filter-model.js';
+import BoardPresenter from './presenter/board-presenter.js';
 import FilterPresenter from './presenter/filter-presenter.js';
-import PointsApiService from './points-api-service.js';
-import DestinationsApiService from './destinations-api-service.js';
-import OffersApiService from './offers-api-service.js';
+import PointsModel from './model/points-model.js';
+import FilterModel from './model/filter-model.js';
+import PointsApiService from './service/points-api-service.js';
 
-const AUTHORIZATION = 'Basic hS3sfS55wcl2sa8j';
+const AUTHORIZATION = 'Basic m7t2xq9vj4pk1nw';
+const END_POINT = 'https://21.objects.htmlacademy.pro/big-trip';
 
-const END_POINT = 'https://24.objects.htmlacademy.pro/big-trip';
-
-const pageMainElement = document.querySelector('.page-main');
-const pageHeaderElement = document.querySelector('.page-header');
-const tripControlFilters = pageHeaderElement.querySelector('.trip-controls__filters');
-const tripEventsElement = pageMainElement.querySelector('.trip-events');
 const newEventButton = document.querySelector('.trip-main__event-add-btn');
+newEventButton.disabled = true;
 
-const pointsApiService = new PointsApiService(END_POINT, AUTHORIZATION);
-const destinationsApiService = new DestinationsApiService(END_POINT, AUTHORIZATION);
-const offersApiService = new OffersApiService(END_POINT, AUTHORIZATION);
-
-const pointsModel = new PointsModel({ pointsApiService });
-const destinationsModel = new DestinationsModel({ destinationsApiService });
-const offersModel = new OffersModel({ offersApiService });
+const apiService = new PointsApiService(END_POINT, AUTHORIZATION);
+const pointsModel = new PointsModel(apiService);
 const filterModel = new FilterModel();
 
-const tripPresenter = new TripPresenter({
-  tripEventsContainer: tripEventsElement,
+const boardPresenter = new BoardPresenter({
   pointsModel,
-  destinationsModel,
-  offersModel,
   filterModel,
-  newPointButton: newEventButton,
+  onNewPointFormClose: () => {
+    newEventButton.disabled = false;
+  },
+  onLoadingComplete: () => {
+    newEventButton.disabled = false;
+  },
 });
 
 const filterPresenter = new FilterPresenter({
-  container: tripControlFilters,
+  filterContainer: document.querySelector('.trip-controls__filters'),
   filterModel,
   pointsModel,
 });
 
-tripPresenter.setLoading(true);
+newEventButton.addEventListener('click', () => {
+  boardPresenter.createPoint();
+  newEventButton.disabled = true;
+});
 
-Promise.all([
-  pointsModel.init(),
-  destinationsModel.init(),
-  offersModel.init(),
-])
-  .then(() => {
-    tripPresenter.setLoading(false);
-    filterPresenter.init();
-    tripPresenter.init();
-  })
-  .catch(() => {
-    tripPresenter.renderError();
-  });
+filterPresenter.init();
+boardPresenter.init();
+pointsModel.init();
